@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
     CONFIG_LOGGER_PATH: str
     POSTGRES_URL: str
+    POSTGRES_URL_SQLALCHEMY: str
     POSTGRES_HOST: str
     POSTGRES_PORT: int
     POSTGRES_DB: str
