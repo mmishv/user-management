@@ -37,6 +37,7 @@ class User(Base):
     name: Mapped[str]
     surname: Mapped[str]
     username: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(255))
     phone_number: Mapped[str] = mapped_column(String(20), unique=True)
     email: Mapped[str] = mapped_column(String(256), unique=True, index=True)
     role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum), default=RoleEnum.USER)
