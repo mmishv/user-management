@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, Header
+from fastapi.security import OAuth2PasswordRequestForm
 
 from logs.logs import configure_logger
 from src.auth.repository import AuthRepository, create_user_repository
@@ -13,7 +13,6 @@ from src.auth.schemas import (
     UserSignup,
 )
 from src.auth.service import AuthService
-from src.utils import oauth2_scheme
 
 router = APIRouter()
 logger = configure_logger(__name__)
@@ -42,7 +41,7 @@ async def login(
 
 @router.post("/refresh-token/", response_model=JwtResponse)
 async def refresh_token(
-    token: str = Depends(oauth2_scheme),
+    token: str = Header(),
     user_repo: AuthRepository = Depends(create_user_repository),
 ):
     logger.info("Refresh endpoint accessed")

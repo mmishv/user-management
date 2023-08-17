@@ -2,7 +2,7 @@ import pytest
 from httpx import AsyncClient
 
 from src.main import app
-from tests.auth.fixtures import (
+from tests.fixtures import (
     LOGIN_URL,
     REFRESH_TOKEN_URL,
     SIGNUP_URL,
@@ -77,12 +77,11 @@ async def test_invalid_data_login(
 @pytest.mark.asyncio
 async def test_successful_refresh_token(truncate_tables, create_user):
     await truncate_tables
-    refresh_token = (await create_user)[0]
+    refresh_token = (await create_user)[1]
     async with AsyncClient(app=app, base_url=client_base_url) as client:
         response = await client.post(
             REFRESH_TOKEN_URL,
-            headers={"Authorization": f"Bearer {refresh_token}"},
-            json={"refresh_token": refresh_token},
+            headers={"token": refresh_token},
         )
     assert response.status_code == 200
     response_data = response.json()
@@ -98,8 +97,7 @@ async def test_invalid_refresh_token(truncate_tables, create_user):
     async with AsyncClient(app=app, base_url=client_base_url) as client:
         response = await client.post(
             REFRESH_TOKEN_URL,
-            headers={"Authorization": f"Bearer {refresh_token}"},
-            json={"refresh_token": refresh_token},
+            headers={"token": refresh_token},
         )
     assert response.status_code == 401
 
@@ -107,11 +105,10 @@ async def test_invalid_refresh_token(truncate_tables, create_user):
 @pytest.mark.asyncio
 async def test_blacklisted_refresh_token(truncate_tables, refresh_user):
     await truncate_tables
-    old_refresh_token = (await refresh_user)[0]
+    old_refresh_token = (await refresh_user)[1]
     async with AsyncClient(app=app, base_url=client_base_url) as client:
         response = await client.post(
             REFRESH_TOKEN_URL,
-            headers={"Authorization": f"Bearer {old_refresh_token}"},
-            json={"refresh_token": old_refresh_token},
+            headers={"token": old_refresh_token},
         )
     assert response.status_code == 401

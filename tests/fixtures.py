@@ -38,12 +38,11 @@ async def create_user(user_signup_data):
 @pytest.fixture
 @pytest.mark.asyncio
 async def refresh_user(create_user):
-    old_refresh_token = (await create_user)[0]
+    old_refresh_token = (await create_user)[1]
     async with AsyncClient(app=app, base_url=client_base_url) as client:
         response = await client.post(
             REFRESH_TOKEN_URL,
-            headers={"Authorization": f"Bearer {old_refresh_token}"},
-            json={"refresh_token": old_refresh_token},
+            headers={"token": old_refresh_token},
         )
     new_refresh_token = response.json().get("refresh_token")
     return old_refresh_token, new_refresh_token

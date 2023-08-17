@@ -18,10 +18,8 @@ services:
   postgres:
     container_name: postgres
     image: postgres:13
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: user_management
+    env_file:
+      - ./.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
