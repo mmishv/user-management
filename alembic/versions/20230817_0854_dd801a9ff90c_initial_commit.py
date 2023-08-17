@@ -1,8 +1,8 @@
-"""Initial migration
+"""Initial commit
 
-Revision ID: 49673d5b6f6a
+Revision ID: dd801a9ff90c
 Revises:
-Create Date: 2023-08-14 07:51:09.439450
+Create Date: 2023-08-17 08:54:47.604561
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "49673d5b6f6a"
+revision: str = "dd801a9ff90c"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,7 +23,7 @@ def upgrade() -> None:
     op.create_table(
         "group",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=100), nullable=False),
+        sa.Column("name", sa.Text(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -32,21 +32,22 @@ def upgrade() -> None:
     op.create_table(
         "user",
         sa.Column("id", sa.Uuid(), nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
-        sa.Column("surname", sa.String(), nullable=False),
-        sa.Column("username", sa.String(length=100), nullable=False),
-        sa.Column("phone_number", sa.String(length=20), nullable=False),
-        sa.Column("email", sa.String(length=256), nullable=False),
+        sa.Column("name", sa.Text(), nullable=True),
+        sa.Column("surname", sa.Text(), nullable=True),
+        sa.Column("username", sa.Text(), nullable=False),
+        sa.Column("hashed_password", sa.Text(), nullable=False),
+        sa.Column("phone_number", sa.Text(), nullable=True),
+        sa.Column("email", sa.Text(), nullable=False),
         sa.Column(
             "role",
             sa.Enum("USER", "ADMIN", "MODERATOR", name="roleenum"),
             nullable=False,
         ),
-        sa.Column("group_id", sa.Integer(), nullable=False),
-        sa.Column("image_s3_path", sa.String(length=1024), nullable=False),
+        sa.Column("group_id", sa.Integer(), nullable=True),
+        sa.Column("image_s3_path", sa.Text(), nullable=True),
         sa.Column("is_blocked", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
-        sa.Column("modified_at", sa.DateTime(), nullable=False),
+        sa.Column("modified_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["group_id"],
             ["group.id"],

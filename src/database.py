@@ -2,11 +2,13 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 import aioredis
-import asyncpg
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from logs.logs import configure_logger
 from src.settings import Settings
+
+logger = configure_logger(__name__)
 
 settings = Settings()
 
@@ -30,15 +32,6 @@ async def create_async_session() -> AsyncGenerator[AsyncSession, None]:
                 yield session
             finally:
                 await session.close()
-
-
-@asynccontextmanager
-async def get_db():
-    connection = await asyncpg.connect(DATABASE_URL)
-    try:
-        yield connection
-    finally:
-        await connection.close()
 
 
 @asynccontextmanager
