@@ -1,34 +1,26 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import HTTPException, RequestValidationError
+from starlette.responses import JSONResponse
 
-from logs.logs import configure_logger
-from src.database import create_async_session, get_db, get_redis
+from src.auth.router import router as auth_router
 from src.other.router import router as other_router
 
 app = FastAPI()
-logger = configure_logger(__name__)
 
 
-@app.on_event("startup")
-async def startup_event():
-    logger.info("Starting up...")
-    async with create_async_session() as db_session:
-        app.state.db_session = db_session
-
-        async with get_db() as db_connection:
-            app.state.db = db_connection
-
-        async with get_redis() as redis:
-            app.state.redis = redis
-    logger.info("Startup completed.")
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    return JSONResponse(content={"message": exc.detail}, status_code=exc.status_code)
 
 
-@app.on_event("shutdown")
-async def shutdown_event():
-    logger.info("Shutting down...")
-    await app.state.db_session.close()
-    await app.state.db.close()
-    await app.state.redis.close()
-    logger.info("Shutdown completed.")
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+    )
 
 
 app.include_router(other_router)
+app.include_router(auth_router, prefix="/auth")
