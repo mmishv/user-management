@@ -61,7 +61,11 @@ async def moderator_group_permission(user_id: str, user: User):
     async with create_base_user_repository() as user_repo:
         user_info = await user_repo.get_user_by_id(user_id=user_id)
 
-    if not user_info.group_id or user_info.group_id != user.group_id:
+    if (
+        user.role != "MODERATOR"
+        or not user_info.group_id
+        or user_info.group_id != user.group_id
+    ):
         raise HTTPException(
             status_code=403,
             detail="Access denied. Users and moderators must belong to the same group.",

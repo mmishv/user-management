@@ -29,7 +29,6 @@ class UserService:
         if (
             not message
             and user_patch_data.username
-            and user_patch_data.username
             and user_patch_data.username != user.username
         ):
             existing_user = await self.user_repo.get_user_by_username(
@@ -39,7 +38,6 @@ class UserService:
                 message = f"username {user_patch_data.username}"
         if (
             not message
-            and user_patch_data.phone_number
             and user_patch_data.phone_number
             and user_patch_data.phone_number != user.phone_number
         ):

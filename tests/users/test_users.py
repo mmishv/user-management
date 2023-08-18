@@ -138,33 +138,8 @@ async def test_no_permissions_delete_user(tokens_fixture, truncate_tables, reque
         ("?page=5&limit=30&sort_by=name&order_by=desc", 200),
         ("?page=1&limit=30&sort_by=id&order_by=asc", 200),
         ("?page=1&limit=30&sort_by=id&order_by=desc", 200),
-        ("?page=-1&limit=30&sort_by=id&order_by=desc", 400),
-        ("?page=1&limit=300&sort_by=id&order_by=desc", 400),
-        ("?page=1&limit=30&sort_by=invalid_field", 403),
-        ("?page=1&limit=30&order_by=invalid_order", 403),
-    ],
-)
-@pytest.mark.asyncio
-async def test_successful_get_users(
-    truncate_tables, query_params, expected_status, create_user_and_admin
-):
-    await truncate_tables
-    admin_access_token = (await create_user_and_admin)[0]
-    async with AsyncClient(app=app, base_url=client_base_url) as client:
-        response = await client.get(
-            f"{USERS_URL}/{query_params}/", headers={"token": admin_access_token}
-        )
-    assert response.status_code == expected_status
-
-
-@pytest.mark.parametrize(
-    "query_params, expected_status",
-    [
-        ("?page=5&limit=30&sort_by=name&order_by=desc", 200),
-        ("?page=1&limit=30&sort_by=id&order_by=asc", 200),
-        ("?page=1&limit=30&sort_by=id&order_by=desc", 200),
-        ("?page=-1&limit=30", 422),
-        ("?page=1&limit=150", 422),
+        ("?page=-1&limit=30&sort_by=id&order_by=desc", 422),
+        ("?page=1&limit=300&sort_by=id&order_by=desc", 422),
         ("?page=1&limit=30&sort_by=invalid_field", 403),
         ("?page=1&limit=30&order_by=invalid_order", 403),
     ],

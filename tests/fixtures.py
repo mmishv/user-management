@@ -107,6 +107,7 @@ async def create_user_and_moderator_from_the_same_group(create_user):
         user = await conn.get(User, user.id)
         user.group_id = group.id
         moderator = await conn.get(User, moderator.id)
+        moderator.role = "MODERATOR"
         moderator.group_id = group.id
         await conn.commit()
     return access_token, user_access_token
