@@ -5,6 +5,7 @@ from starlette.responses import JSONResponse
 
 from src.auth.router import router as auth_router
 from src.other.router import router as other_router
+from src.users.router import router as users_router
 
 app = FastAPI()
 
@@ -24,3 +25,4 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 app.include_router(other_router)
 app.include_router(auth_router, prefix="/auth")
+app.include_router(users_router, prefix="/users")

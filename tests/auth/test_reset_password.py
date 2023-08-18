@@ -3,7 +3,7 @@ from httpx import AsyncClient
 
 from src.auth.schemas import UserResetPassword
 from src.main import app
-from tests.auth.fixtures import (
+from tests.fixtures import (
     RESET_PASSWORD_REQUEST_URL,
     RESET_PASSWORD_URL,
     client_base_url,
