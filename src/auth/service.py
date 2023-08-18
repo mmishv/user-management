@@ -63,10 +63,10 @@ class AuthService:
         hashed_password = get_password_hash(user.password)
         user_data = {
             "email": user.email,
-            "hashed_password": hashed_password,
+            "password": hashed_password,
             "username": user.username,
         }
-        user = await self.user_repo.create_user(user_data)
+        user = await self.user_repo.create_user(UserSignup(**user_data))
         jwt_request = JwtRequest(
             username=user.username, user_id=str(user.id)
         ).model_dump()
