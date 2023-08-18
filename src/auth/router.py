@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Header
 from fastapi.security import OAuth2PasswordRequestForm
 
 from logs.logs import configure_logger
-from src.auth.repository import AuthRepository, create_user_repository
+from src.auth.repository import AuthRepository, create_auth_repository
 from src.auth.schemas import (
     JwtResponse,
     UserEmail,
@@ -20,7 +20,7 @@ logger = configure_logger(__name__)
 
 @router.post("/signup/", response_model=JwtResponse)
 async def signup(
-    user: UserSignup, user_repo: AuthRepository = Depends(create_user_repository)
+    user: UserSignup, user_repo: AuthRepository = Depends(create_auth_repository)
 ):
     logger.info("Signup endpoint accessed")
     async with user_repo as user_repository:
@@ -31,7 +31,7 @@ async def signup(
 @router.post("/login/", response_model=JwtResponse)
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    user_repo: AuthRepository = Depends(create_user_repository),
+    user_repo: AuthRepository = Depends(create_auth_repository),
 ):
     logger.info("Login endpoint accessed")
     user = UserLogin(username=form_data.username, password=form_data.password)
@@ -42,7 +42,7 @@ async def login(
 @router.post("/refresh-token/", response_model=JwtResponse)
 async def refresh_token(
     token: str = Header(),
-    user_repo: AuthRepository = Depends(create_user_repository),
+    user_repo: AuthRepository = Depends(create_auth_repository),
 ):
     logger.info("Refresh endpoint accessed")
     async with user_repo as user_repository:
@@ -53,7 +53,7 @@ async def refresh_token(
 @router.post("/reset-password-request/")
 async def reset_password_request(
     reset_request: UserEmail,
-    user_repo: AuthRepository = Depends(create_user_repository),
+    user_repo: AuthRepository = Depends(create_auth_repository),
 ):
     logger.info("Reset password (send email stage) endpoint accessed")
     async with user_repo as user_repository:
@@ -65,7 +65,7 @@ async def reset_password_request(
 
 @router.post("/reset-password/")
 async def reset_password(
-    data: UserResetPassword, user_repo: AuthRepository = Depends(create_user_repository)
+    data: UserResetPassword, user_repo: AuthRepository = Depends(create_auth_repository)
 ):
     logger.info("Reset password (set new password stage) endpoint accessed")
     async with user_repo as user_repository:

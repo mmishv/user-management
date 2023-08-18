@@ -52,3 +52,8 @@ class User(Base):
     group = relationship(
         "Group", back_populates="users", order_by="Group.id", lazy="joined"
     )
+
+    def to_dict(self):
+        user_dict = self.__dict__
+        user_dict["id"] = str(user_dict["id"])
+        return user_dict

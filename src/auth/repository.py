@@ -1,27 +1,16 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
+from typing import AsyncGenerator
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database import create_async_session, get_redis
 from src.models import User
+from src.repository import BaseUserRepository
 
 
-class AuthRepository:
+class AuthRepository(BaseUserRepository):
     def __init__(self, db_session: AsyncSession, redis_session):
-        self.db_session = db_session
-        self.redis_session = redis_session
-
-    async def get_user_by_username(self, username: str) -> Optional[User]:
-        async with self.db_session as conn:
-            user = await conn.execute(select(User).filter(User.username == username))
-        return user.scalar()
-
-    async def get_user_by_email(self, email: str) -> Optional[User]:
-        async with self.db_session as conn:
-            user = await conn.execute(select(User).filter(User.email == email))
-        return user.scalar()
+        super().__init__(db_session, redis_session)
 
     async def create_user(self, user_data: dict) -> User:
         user = User(**user_data)
@@ -46,14 +35,9 @@ class AuthRepository:
         async with self.redis_session as conn:
             await conn.setex(token, expire_time_in_seconds, token)
 
-    async def check_if_token_is_blacklisted(self, token: str) -> bool:
-        async with self.redis_session as conn:
-            token_value = await conn.get(token)
-        return token_value is not None
-
 
 @asynccontextmanager
-async def create_user_repository() -> AsyncGenerator[AuthRepository, None]:
+async def create_auth_repository() -> AsyncGenerator[AuthRepository, None]:
     async with create_async_session() as db_session:
         async with get_redis() as redis_session:
             yield AuthRepository(db_session, redis_session)
