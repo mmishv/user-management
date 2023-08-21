@@ -14,6 +14,7 @@ from src.auth.schemas import (
     UserResetPassword,
     UserSignup,
 )
+from src.aws.email_service import SESEmailService
 from src.models import User
 from src.settings import Settings
 from src.utils import get_current_user
@@ -107,6 +108,13 @@ class AuthService:
             )
         reset_token = create_reset_password_token(email)
         link = f"http://python:8000/reset-password?reset_password_token={reset_token}"
+        email_service = SESEmailService()
+        await email_service.send_email(
+            subject="Reset password email",
+            body=link,
+            sender="sender@example.com",
+            recipient=email,
+        )
         logger.debug(f"Sending reset password email to: {email} with link: {link}")
         return link
 
