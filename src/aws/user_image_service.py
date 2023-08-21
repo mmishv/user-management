@@ -11,7 +11,8 @@ settings = Settings()
 
 
 class S3UserImageService:
-    bucket = "user-avatars"
+    BUCKET = "user-avatars"
+    CONTENTS_KEY = "Contents"
 
     def __init__(self):
         self.aws_access_key_id = settings.AWS_ACCESS_KEY_ID
@@ -37,14 +38,14 @@ class S3UserImageService:
     async def upload_avatar(self, file: UploadFile, user_id: str):
         async def upload_to_s3(s3):
             file_path = f"avatars/{user_id}"
-            await s3.upload_fileobj(file, self.bucket, file_path)
+            await s3.upload_fileobj(file, self.BUCKET, file_path)
             return file_path
 
         return await self._perform_s3_action(upload_to_s3)
 
     async def get_avatar(self, avatar_s3_path: str):
         async def get_from_s3(s3):
-            s3_ob = await s3.get_object(Bucket=self.bucket, Key=avatar_s3_path)
+            s3_ob = await s3.get_object(Bucket=self.BUCKET, Key=avatar_s3_path)
             image_bytes = await s3_ob["Body"].read()
             return base64.b64encode(image_bytes).decode("utf-8")
 
@@ -52,30 +53,30 @@ class S3UserImageService:
 
     async def delete_avatar(self, avatar_s3_path: str):
         async def delete_from_s3(s3):
-            await s3.delete_object(Bucket=self.bucket, Key=avatar_s3_path)
+            await s3.delete_object(Bucket=self.BUCKET, Key=avatar_s3_path)
 
         await self._perform_s3_action(delete_from_s3)
 
     async def delete_all_avatars(self):
         async def delete_all_objects(s3):
-            objects = await s3.list_objects(Bucket=self.bucket)
-            if "Contents" in objects:
-                for obj in objects["Contents"]:
-                    await s3.delete_object(Bucket=self.bucket, Key=obj["Key"])
+            objects = await s3.list_objects(Bucket=self.BUCKET)
+            if self.CONTENTS_KEY in objects:
+                for obj in objects[self.CONTENTS_KEY]:
+                    await s3.delete_object(Bucket=self.BUCKET, Key=obj["Key"])
 
         await self._perform_s3_action(delete_all_objects)
 
     async def _create_bucket_if_not_exists(self, s3):
         try:
-            await s3.head_bucket(Bucket=self.bucket)
-            logger.info(f"Bucket '{self.bucket}' already exists.")
+            await s3.head_bucket(Bucket=self.BUCKET)
+            logger.info(f"Bucket '{self.BUCKET}' already exists.")
         except s3.exceptions.ClientError:
             try:
-                await s3.create_bucket(Bucket=self.bucket)
-                logger.info(f"Bucket '{self.bucket}' created successfully.")
+                await s3.create_bucket(Bucket=self.BUCKET)
+                logger.info(f"Bucket '{self.BUCKET}' created successfully.")
             except Exception as e:
-                logger.error(f"Error creating bucket '{self.bucket}': {e} ({type(e)})")
+                logger.error(f"Error creating bucket '{self.BUCKET}': {e} ({type(e)})")
                 raise
         except Exception as e:
-            logger.error(f"Error checking bucket '{self.bucket}': {e} ({type(e)})")
+            logger.error(f"Error checking bucket '{self.BUCKET}': {e} ({type(e)})")
             raise
