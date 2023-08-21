@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, UploadFile
 
 from logs.logs import configure_logger
 from src.models import User
@@ -19,19 +19,24 @@ logger = configure_logger(__name__)
 
 
 @router.get("/me/", response_model=UserData)
-async def read_me(user: User = Depends(get_current_user)):
-    return UserData(**user.to_dict())
+async def read_me(
+    user: User = Depends(get_current_user),
+    user_repo: UserRepository = Depends(create_user_repository),
+):
+    async with user_repo as user_repository:
+        return await UserService(user_repository).get_user(user_id=user.id)
 
 
 @router.patch("/me/", response_model=UserData)
 async def update_me(
-    user_patch_data: UserPatchData,
+    user_patch_data: UserPatchData = Depends(),
+    avatar: UploadFile = File(None),
     user: User = Depends(get_current_user),
     user_repo: UserRepository = Depends(create_user_repository),
 ):
     async with user_repo as user_repository:
         return await UserService(user_repository).patch_user(
-            user_id=user.id, user_patch_data=user_patch_data
+            user_id=user.id, user_patch_data=user_patch_data, avatar=avatar
         )
 
 
@@ -59,13 +64,14 @@ async def read_user(
 @has_any_permission([admin_permission])
 async def patch_user(
     user_id: str,
-    user_patch_data: UserPatchData,
+    user_patch_data: UserPatchData = Depends(),
+    avatar: UploadFile = File(None),
     user: User = Depends(get_current_user),
     user_repo: UserRepository = Depends(create_user_repository),
 ):
     async with user_repo as user_repository:
         return await UserService(user_repository).patch_user(
-            user_id=user_id, user_patch_data=user_patch_data
+            user_id=user_id, user_patch_data=user_patch_data, avatar=avatar
         )
 
 

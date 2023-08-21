@@ -1,24 +1,34 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import AsyncGenerator, List, Optional, Sequence, Tuple, Type
+from typing import AsyncGenerator, Optional, Sequence, Type
 
-from sqlalchemy import Row, select
+from fastapi import File
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.aws.user_image_service import S3UserImageService
 from src.database import create_async_session
 from src.models import User
 from src.repository import BaseUserRepository
-from src.users.schemas import UserData, UserPatchData
+from src.users.schemas import UserPatchData
 
 
 class UserRepository(BaseUserRepository):
     def __init__(self, db_session: AsyncSession):
         super().__init__(db_session)
 
-    async def update_user(self, user_id, user_data: UserPatchData) -> Type[User] | None:
+    async def update_user(
+        self, user_id, user_data: UserPatchData, avatar: File
+    ) -> Type[User] | None:
         async with self.db_session as conn:
             user = await conn.get(User, user_id)
+            if avatar:
+                avatar_service = S3UserImageService()
+                if user.image_s3_path:
+                    await avatar_service.delete_avatar(str(user.image_s3_path))
+                new_avatar_s3_path = await avatar_service.upload_avatar(avatar, user.id)
+                user.image_s3_path = new_avatar_s3_path
             for field, value in user_data.model_dump().items():
                 if value:
                     setattr(user, field, value)
@@ -29,6 +39,8 @@ class UserRepository(BaseUserRepository):
     async def delete_user(self, user_id):
         async with self.db_session as conn:
             user = await conn.get(User, user_id)
+            if user.image_s3_path:
+                await S3UserImageService().delete_avatar(str(user.image_s3_path))
             await conn.delete(user)
             await conn.commit()
 

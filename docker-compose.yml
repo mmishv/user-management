@@ -31,6 +31,17 @@ services:
     volumes:
       - redis_data:/var/lib/redis/data
 
+  localstack:
+    container_name: localstack
+    image: localstack/localstack
+    env_file:
+      - ./.env
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/tmp/localstack
+
 volumes:
   postgres_data:
   redis_data:
+  localstack_data:
