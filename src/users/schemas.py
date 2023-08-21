@@ -10,7 +10,6 @@ class UserPatchData(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
-    image_s3_path: Optional[str] = None
     group_id: Optional[int] = None
 
 
@@ -20,3 +19,5 @@ class UserData(UserPatchData):
     created_at: datetime
     modified_at: Optional[datetime]
     role: str
+    image_s3_path: Optional[str] = None
+    image: Optional[bytes] = None
