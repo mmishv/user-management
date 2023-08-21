@@ -64,7 +64,7 @@ async def test_successful_patch_user(truncate_tables, create_user_and_admin):
     user = await get_current_user(user_access_token)
     async with AsyncClient(app=app, base_url=client_base_url) as client:
         response = await client.patch(
-            f"{USERS_URL}/{user.id}/", headers={"token": admin_access_token}, json={}
+            f"{USERS_URL}/{user.id}/", headers={"token": admin_access_token}, params={}
         )
 
     assert response.status_code == 200
@@ -94,7 +94,7 @@ async def test_no_permissions_patch_user(tokens_fixture, truncate_tables, reques
     user = await get_current_user(user_access_token)
     async with AsyncClient(app=app, base_url=client_base_url) as client:
         response = await client.patch(
-            f"{USERS_URL}/{user.id}/", headers={"token": admin_access_token}, json={}
+            f"{USERS_URL}/{user.id}/", headers={"token": admin_access_token}, params={}
         )
     assert response.status_code == 403
 
