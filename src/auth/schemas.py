@@ -10,6 +10,7 @@ class JwtRequest(BaseModel):
     username: str
     user_id: str
     role: str
+    is_blocked: bool
 
 
 class UserLogin(BaseModel):

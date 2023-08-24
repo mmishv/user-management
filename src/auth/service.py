@@ -69,7 +69,10 @@ class AuthService:
         }
         user = await self.user_repo.create_user(UserSignup(**user_data))
         jwt_request = JwtRequest(
-            username=user.username, user_id=str(user.id), role=user.role
+            username=user.username,
+            user_id=str(user.id),
+            role=user.role,
+            is_blocked=user.is_blocked,
         ).model_dump()
         access_token, refresh_token = create_access_token(
             jwt_request
@@ -88,7 +91,10 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
             )
         jwt_request = JwtRequest(
-            username=user.username, user_id=str(user.id), role=user.role
+            username=user.username,
+            user_id=str(user.id),
+            role=user.role,
+            is_blocked=user.is_blocked,
         ).model_dump()
         access_token, refresh_token = (
             create_access_token(jwt_request),
@@ -137,7 +143,10 @@ class AuthService:
             refresh_token, settings.REFRESH_TOKEN_EXPIRE_DAYS
         )
         jwt_request = JwtRequest(
-            username=user.username, user_id=str(user.id), role=user.role
+            username=user.username,
+            user_id=str(user.id),
+            role=user.role,
+            is_blocked=user.is_blocked,
         ).model_dump()
         access_token, refresh_token = (
             create_access_token(jwt_request),
