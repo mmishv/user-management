@@ -9,6 +9,7 @@ class JwtResponse(BaseModel):
 class JwtRequest(BaseModel):
     username: str
     user_id: str
+    role: str
 
 
 class UserLogin(BaseModel):
