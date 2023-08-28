@@ -6,7 +6,7 @@ from logs.logs import configure_logger
 from src.aws.user_image_service import S3UserImageService
 from src.models import User
 from src.users.repository import UserRepository
-from src.users.schemas import UserData, UserPatchData
+from src.users.schemas import UserData, UserPatchDataWithBlockStatus
 
 logger = configure_logger(__name__)
 
@@ -16,7 +16,7 @@ class UserService:
         self.user_repo = user_repo
 
     async def patch_user(
-        self, user_id: str, user_patch_data: UserPatchData, avatar: File
+        self, user_id: str, user_patch_data: UserPatchDataWithBlockStatus, avatar: File
     ) -> UserData:
         user = await self.user_repo.get_user_by_id(user_id)
         logger.debug(f"Start patching user {user.id}")
@@ -56,7 +56,7 @@ class UserService:
         return [await self.get_user_data_with_avatar(user) for user in users]
 
     async def check_duplicate_credentials(
-        self, user_patch_data: UserPatchData, user: User
+        self, user_patch_data: UserPatchDataWithBlockStatus, user: User
     ):
         message = None
         if user_patch_data.email and user_patch_data.email != user.email:

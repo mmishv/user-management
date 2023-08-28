@@ -11,7 +11,7 @@ from src.aws.user_image_service import S3UserImageService
 from src.database import create_async_session
 from src.models import User
 from src.repository import BaseUserRepository
-from src.users.schemas import UserPatchData
+from src.users.schemas import UserPatchDataWithBlockStatus
 
 
 class UserRepository(BaseUserRepository):
@@ -19,7 +19,7 @@ class UserRepository(BaseUserRepository):
         super().__init__(db_session)
 
     async def update_user(
-        self, user_id, user_data: UserPatchData, avatar: File
+        self, user_id, user_data: UserPatchDataWithBlockStatus, avatar: File
     ) -> Type[User] | None:
         async with self.db_session as conn:
             user = await conn.get(User, user_id)

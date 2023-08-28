@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, File, Query, UploadFile
 from logs.logs import configure_logger
 from src.models import User
 from src.users.repository import UserRepository, create_user_repository
-from src.users.schemas import UserData, UserPatchData
+from src.users.schemas import UserData, UserPatchData, UserPatchDataWithBlockStatus
 from src.users.service import UserService
 from src.utils import (
     admin_permission,
@@ -64,7 +64,7 @@ async def read_user(
 @has_any_permission([admin_permission])
 async def patch_user(
     user_id: str,
-    user_patch_data: UserPatchData = Depends(),
+    user_patch_data: UserPatchDataWithBlockStatus = Depends(),
     avatar: UploadFile = File(None),
     user: User = Depends(get_current_user),
     user_repo: UserRepository = Depends(create_user_repository),

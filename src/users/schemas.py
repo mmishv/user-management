@@ -13,6 +13,10 @@ class UserPatchData(BaseModel):
     group_id: Optional[int] = None
 
 
+class UserPatchDataWithBlockStatus(UserPatchData):
+    is_blocked: Optional[bool] = None
+
+
 class UserData(UserPatchData):
     id: str
     is_blocked: bool
