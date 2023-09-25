@@ -17,7 +17,7 @@ DATABASE_URL = settings.POSTGRES_URL
 REDIS_URL = settings.REDIS_URL
 
 engine: AsyncEngine = create_async_engine(
-    SQLALCHEMY_DATABASE_URL, echo=True, future=True, pool_size=10, max_overflow=20
+    SQLALCHEMY_DATABASE_URL, echo=False, future=True, pool_size=10, max_overflow=20
 )
 
 
