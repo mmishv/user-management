@@ -57,6 +57,14 @@ def admin_permission(user_id: str, user: User):
         )
 
 
+def moderator_permission(user_id: str, user: User):
+    if user.role != "MODERATOR":
+        raise HTTPException(
+            status_code=401,
+            detail="You have not enough privileges: you must be a moderator",
+        )
+
+
 async def moderator_group_permission(user_id: str, user: User):
     async with create_base_user_repository() as user_repo:
         user_info = await user_repo.get_user_by_id(user_id=user_id)

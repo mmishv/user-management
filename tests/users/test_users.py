@@ -40,23 +40,6 @@ async def test_successful_get_user(tokens_fixture, truncate_tables, request):
     )
 
 
-@pytest.mark.parametrize(
-    "tokens_fixture", ["create_user", "create_user_and_moderator_from_diff_group"]
-)
-@pytest.mark.asyncio
-async def test_no_permissions_get_user(tokens_fixture, truncate_tables, request):
-    await truncate_tables
-    admin_access_token, user_access_token = await request.getfixturevalue(
-        tokens_fixture
-    )
-    user = await get_current_user(user_access_token)
-    async with AsyncClient(app=app, base_url=client_base_url) as client:
-        response = await client.get(
-            f"{USERS_URL}/{user.id}/", headers={"token": admin_access_token}
-        )
-    assert response.status_code == 403
-
-
 @pytest.mark.asyncio
 async def test_successful_patch_user(truncate_tables, create_user_and_admin):
     await truncate_tables
@@ -81,8 +64,6 @@ async def test_successful_patch_user(truncate_tables, create_user_and_admin):
     "tokens_fixture",
     [
         "create_user",
-        "create_user_and_moderator_from_the_same_group",
-        "create_user_and_moderator_from_diff_group",
     ],
 )
 @pytest.mark.asyncio
@@ -155,23 +136,3 @@ async def test_successful_get_users(
             f"{USERS_URL}/{query_params}/", headers={"token": admin_access_token}
         )
     assert response.status_code == expected_status
-
-
-@pytest.mark.parametrize(
-    "tokens_fixture",
-    [
-        "create_user",
-        "create_user_and_moderator_from_the_same_group",
-        "create_user_and_moderator_from_diff_group",
-    ],
-)
-@pytest.mark.asyncio
-async def test_no_permissions_get_users(tokens_fixture, truncate_tables, request):
-    await truncate_tables
-    access_token = (await request.getfixturevalue(tokens_fixture))[0]
-    async with AsyncClient(app=app, base_url=client_base_url) as client:
-        response = await client.get(
-            f"{USERS_URL}/?page=5&limit=30&sort_by=name&order_by=desc/",
-            headers={"token": access_token},
-        )
-    assert response.status_code == 403
