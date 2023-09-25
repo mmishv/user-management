@@ -6,7 +6,13 @@ from logs.logs import configure_logger
 from src.aws.user_image_service import S3UserImageService
 from src.models import User
 from src.users.repository import UserRepository
-from src.users.schemas import UserData, UserPatchDataWithBlockStatus
+from src.users.schemas import (
+    CreateGroup,
+    GroupInfo,
+    UserData,
+    UserPatchDataAdvanced,
+    UserUUIDList,
+)
 
 logger = configure_logger(__name__)
 
@@ -16,7 +22,7 @@ class UserService:
         self.user_repo = user_repo
 
     async def patch_user(
-        self, user_id: str, user_patch_data: UserPatchDataWithBlockStatus, avatar: File
+        self, user_id: str, user_patch_data: UserPatchDataAdvanced, avatar: File
     ) -> UserData:
         user = await self.user_repo.get_user_by_id(user_id)
         logger.debug(f"Start patching user {user.id}")
@@ -45,18 +51,22 @@ class UserService:
         filter_by_name: Optional[str],
         sort_by: Optional[str],
         order_by: Optional[str],
+        user: User,
     ) -> List[UserData]:
         logger.debug("Start getting users")
         if not hasattr(User, str(sort_by)):
             raise HTTPException(status_code=400, detail="Invalid query parameters")
+        group_id = None
+        if user.role == "MODERATOR":
+            group_id = user.group_id
         users = await self.user_repo.get_users(
-            page, limit, filter_by_name, sort_by, order_by
+            page, limit, filter_by_name, sort_by, order_by, group_id
         )
         logger.debug("Successful get user {user_id}")
         return [await self.get_user_data_with_avatar(user) for user in users]
 
     async def check_duplicate_credentials(
-        self, user_patch_data: UserPatchDataWithBlockStatus, user: User
+        self, user_patch_data: UserPatchDataAdvanced, user: User
     ):
         message = None
         if user_patch_data.email and user_patch_data.email != user.email:
@@ -99,3 +109,20 @@ class UserService:
                 str(user.image_s3_path)
             )
         return user_data
+
+    async def create_group(self, create_group_data: CreateGroup) -> GroupInfo:
+        logger.debug(f"Start creating group {create_group_data.name}")
+        group = await self.user_repo.create_group(create_group_data)
+        logger.debug(f"Successful create group {group.name}")
+        return GroupInfo(**group.__dict__)
+
+    async def get_all_groups(self) -> List[GroupInfo]:
+        groups = await self.user_repo.get_all_groups()
+        return [GroupInfo(**group.__dict__) for group in groups]
+
+    async def delete_group(self, group_id: int):
+        await self.user_repo.delete_group_by_id(group_id)
+
+    async def get_users_by_uuid_list(self, uuid_list: UserUUIDList) -> List[UserData]:
+        users = await self.user_repo.get_users_by_uuid_list(uuid_list)
+        return [await self.get_user_data_with_avatar(user) for user in users]

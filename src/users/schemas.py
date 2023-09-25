@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr
 
@@ -10,11 +10,12 @@ class UserPatchData(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
     phone_number: Optional[str] = None
-    group_id: Optional[int] = None
 
 
-class UserPatchDataWithBlockStatus(UserPatchData):
+class UserPatchDataAdvanced(UserPatchData):
     is_blocked: Optional[bool] = None
+    group_id: Optional[int] = None
+    role: Optional[str] = None
 
 
 class UserData(UserPatchData):
@@ -25,3 +26,18 @@ class UserData(UserPatchData):
     role: str
     image_s3_path: Optional[str] = None
     image: Optional[bytes] = None
+    group_id: Optional[int] = None
+
+
+class UserUUIDList(BaseModel):
+    uuid_list: List[str]
+
+
+class CreateGroup(BaseModel):
+    name: str
+
+
+class GroupInfo(BaseModel):
+    id: int
+    name: str
+    created_at: datetime

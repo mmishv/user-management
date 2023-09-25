@@ -113,8 +113,9 @@ class AuthService:
                 detail="Invalid email. No user found with this email address",
             )
         reset_token = create_reset_password_token(email)
-        link = f"http://python:8000/reset-password?reset_password_token={reset_token}"
+        link = f"localhost:4200/reset-password?reset_password_token={reset_token}"
         email_service = SESEmailService()
+        await email_service.verify_email("sender@example.com")
         await email_service.send_email(
             subject="Reset password email",
             body=link,
