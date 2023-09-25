@@ -10,6 +10,20 @@ logger = configure_logger(__name__)
 settings = Settings()
 
 
+class SessionSingleton:
+    _instance = None
+
+    @classmethod
+    def get_instance(cls, aws_access_key_id, aws_secret_access_key):
+        if cls._instance is None:
+            session = aioboto3.Session(
+                aws_secret_access_key=aws_secret_access_key,
+                aws_access_key_id=aws_access_key_id,
+            )
+            cls._instance = session
+        return cls._instance
+
+
 class S3UserImageService:
     BUCKET = "user-avatars"
     CONTENTS_KEY = "Contents"
@@ -19,14 +33,10 @@ class S3UserImageService:
         self.aws_secret_access_key = settings.AWS_SECRET_ACCESS_KEY
         self.endpoint_url = settings.ENDPOINT_URL
 
-    async def _s3_session(self):
-        return aioboto3.Session(
-            aws_secret_access_key=self.aws_secret_access_key,
-            aws_access_key_id=self.aws_access_key_id,
-        )
-
     async def _perform_s3_action(self, action_callback):
-        session = await self._s3_session()
+        session = SessionSingleton().get_instance(
+            self.aws_access_key_id, self.aws_secret_access_key
+        )
         async with session.client("s3", endpoint_url=self.endpoint_url) as s3:
             try:
                 await self._create_bucket_if_not_exists(s3)

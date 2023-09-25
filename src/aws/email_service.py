@@ -1,7 +1,7 @@
-from aioboto3 import Session
 from fastapi import HTTPException
 
 from logs.logs import configure_logger
+from src.aws.user_image_service import SessionSingleton
 from src.settings import Settings
 
 settings = Settings()
@@ -14,14 +14,10 @@ class SESEmailService:
         self.aws_secret_access_key = settings.AWS_SECRET_ACCESS_KEY
         self.region_name = "us-east-1"
 
-    async def _ses_session(self):
-        return Session(
-            aws_secret_access_key=self.aws_secret_access_key,
-            aws_access_key_id=self.aws_access_key_id,
-        )
-
     async def _perform_ses_action(self, action_callback):
-        session = await self._ses_session()
+        session = SessionSingleton().get_instance(
+            self.aws_access_key_id, self.aws_secret_access_key
+        )
         async with session.client(
             "ses", endpoint_url=settings.ENDPOINT_URL, region_name=self.region_name
         ) as ses:
