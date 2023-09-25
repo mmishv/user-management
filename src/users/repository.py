@@ -11,7 +11,7 @@ from src.aws.user_image_service import S3UserImageService
 from src.database import create_async_session
 from src.models import User
 from src.repository import BaseUserRepository
-from src.users.schemas import UserPatchDataWithBlockStatus
+from src.users.schemas import UserPatchDataAdvanced
 
 
 class UserRepository(BaseUserRepository):
@@ -19,7 +19,7 @@ class UserRepository(BaseUserRepository):
         super().__init__(db_session)
 
     async def update_user(
-        self, user_id, user_data: UserPatchDataWithBlockStatus, avatar: File
+        self, user_id, user_data: UserPatchDataAdvanced, avatar: File
     ) -> Type[User] | None:
         async with self.db_session as conn:
             user = await conn.get(User, user_id)
@@ -30,7 +30,7 @@ class UserRepository(BaseUserRepository):
                 new_avatar_s3_path = await avatar_service.upload_avatar(avatar, user.id)
                 user.image_s3_path = new_avatar_s3_path
             for field, value in user_data.model_dump().items():
-                if value:
+                if value is not None:
                     setattr(user, field, value)
             user.modified_at = datetime.now()
             await conn.commit()
@@ -51,11 +51,15 @@ class UserRepository(BaseUserRepository):
         filter_by_name: Optional[str],
         sort_by: Optional[str],
         order_by: Optional[str],
+        group_id: int = None,
     ) -> Sequence[User]:
         query = select(User)
 
+        if group_id:
+            query = query.filter(User.group_id == group_id)
+
         if filter_by_name:
-            query = query.filter(User.name.ilike(f"%{filter_by_name}%"))
+            query = query.filter(User.username.ilike(f"%{filter_by_name}%"))
 
         if sort_by:
             if order_by.lower() == "asc":

@@ -5,13 +5,19 @@ from fastapi import APIRouter, Depends, File, Query, UploadFile
 from logs.logs import configure_logger
 from src.models import User
 from src.users.repository import UserRepository, create_user_repository
-from src.users.schemas import UserData, UserPatchData, UserPatchDataWithBlockStatus
+from src.users.schemas import (
+    UserData,
+    UserPatchData,
+    UserPatchDataAdvanced,
+    UserUUIDList,
+)
 from src.users.service import UserService
 from src.utils import (
     admin_permission,
     get_current_user,
     has_any_permission,
     moderator_group_permission,
+    moderator_permission,
 )
 
 router = APIRouter()
@@ -50,7 +56,7 @@ async def delete_me(
 
 
 @router.get("/{user_id}/", response_model=UserData)
-@has_any_permission([moderator_group_permission, admin_permission])
+# @has_any_permission([moderator_group_permission, admin_permission])
 async def read_user(
     user_id: str,
     user: User = Depends(get_current_user),
@@ -61,10 +67,10 @@ async def read_user(
 
 
 @router.patch("/{user_id}/", response_model=UserData)
-@has_any_permission([admin_permission])
+@has_any_permission([admin_permission, moderator_group_permission])
 async def patch_user(
     user_id: str,
-    user_patch_data: UserPatchDataWithBlockStatus = Depends(),
+    user_patch_data: UserPatchDataAdvanced = Depends(),
     avatar: UploadFile = File(None),
     user: User = Depends(get_current_user),
     user_repo: UserRepository = Depends(create_user_repository),
@@ -87,7 +93,7 @@ async def delete_user(
 
 
 @router.get("/", response_model=List[UserData])
-@has_any_permission([admin_permission])
+@has_any_permission([admin_permission, moderator_permission])
 async def get_users(
     user: User = Depends(get_current_user),
     page: Optional[int] = Query(1, description="Page number", gt=0),
@@ -103,5 +109,15 @@ async def get_users(
 ):
     async with user_repo as user_repository:
         return await UserService(user_repository).get_users(
-            page, limit, filter_by_name, sort_by, order_by
+            page, limit, filter_by_name, sort_by, order_by, user
         )
+
+
+@router.post("/list/", response_model=List[UserData])
+async def users_list(
+    user_uuid_list: UserUUIDList,
+    user: User = Depends(get_current_user),
+    user_repo: UserRepository = Depends(create_user_repository),
+):
+    async with user_repo as user_repository:
+        return await UserService(user_repository).get_users_by_uuid_list(user_uuid_list)
