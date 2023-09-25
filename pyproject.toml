@@ -1,0 +1,36 @@
+[tool.pre_commit]
+hooks = [
+  "trailing-whitespace",
+  "end-of-file-fixer",
+  "check-yaml",
+  "debug-statements",
+  "requirements-txt-fixer",
+  "black",
+  "isort",
+]
+
+[tool.pre_commit.hook-trailing-whitespace]
+files = ["*.py"]
+
+[tool.pre_commit.hook-end-of-file-fixer]
+files = ["*.py"]
+
+[tool.pre_commit.hook-check-yaml]
+files = ["*.yml", "*.yaml"]
+
+[tool.pre_commit.hook-debug-statements]
+files = ["*.py"]
+
+[tool.pre_commit.hook-double-quote-string-fixer]
+files = ["*.py"]
+
+[tool.pre_commit.hook-requirements-txt-fixer]
+files = ["requirements.txt"]
+
+
+[tool.pre_commit.hook-black]
+files = ["*.py"]
+
+[tool.pre_commit.hook-isort]
+args = ["--profile", "black"]
+files = ["*.py"]
